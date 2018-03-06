@@ -24,30 +24,35 @@ do
           esac
           echo "destino $target"
           ;;
-      --recursivo)
-          echo "modo recursivo"
+      --recursive)
+          echo "modo recursive"
+          recursive=true
           ;;
       *) echo Usage ; exit 1
   esac
   shift
 done  
 
-if [ $target ]; then
-    while [ "$#" -gt "0" ]
-    do
-       while read l; do
+downloadReposFromFile(){
+    while read l; do
             if [[ $l == https* ]] ; then
             projectName=${l##*/};
-            projectFolder="$target/$projectName"
-                if [ ! -d $projectName ]; then
+            projectFolder="$2/$projectName"
+                if [ ! -d $projectFolder ]; then
                     echo "Novo projeto encontrado -> [ $projectName ]";
                     git clone "$l.git" "$projectFolder";
                     newRepos+="${path%/*}/$projectName + '\n'";
                     countNewRepos=$((countNewRepos+1));
                 fi
             fi
-       done < $1
-       shift;
+   done < $1
+}
+
+if [ $target ]; then
+    while [ "$#" -gt "0" ]
+    do
+        downloadReposFromFile $1 $target
+        shift;
     done
 fi
 
