@@ -61,15 +61,23 @@ downloadReposFromFile(){
             projectFolder="$2/$projectName"
                 if [ ! -d $projectFolder ]; then
                     echo "Novo projeto encontrado -> [ $projectName ]";
-                    git clone "$l.git" "$projectFolder";
+                    git clone --single-branch "$l.git" "$projectFolder"  >> git.log 2>&1
+                    if [[ $? == 0 ]]; then
+                       echo "Repository successfully cloned $l". | tee -a git_success
+                    else
+                       echo "Repository cloning failed $l" | tee -a git_fail.txt
+                    fi
                     newRepos+="${path%/*}/$projectName + '\n'";
                     countNewRepos=$((countNewRepos+1));
+                else
+                    echo "Project $projectName($l) already exist" | tee -a git_fail.txt
+
                 fi
             fi
    done < $1
 }
 
-if [ recursive ]; then
+if [ ! -z $recursive ]; then
     folders=$(find $initialPath -type f  -name ".links");
     echo "Looking for new projects ... (starting in $initialPath)"
     for path in $folders; do
@@ -83,11 +91,12 @@ if [ recursive ]; then
 fi
 
 
-if [ $target ]; then
+if [ ! -z $target ]; then
     while [ "$#" -gt "0" ]
     do
         downloadReposFromFile $1 $target
         shift;
     done
 fi
+
 
